@@ -1,0 +1,38 @@
+﻿using Modulith.Commerce.AdminUser.Domain.Abstractions;
+using Modulith.Commerce.AdminUser.Domain.AdminUsers;
+using Modulith.Commerce.Common.Application.Abstractions.Messaging;
+using Modulith.Commerce.Common.Domain.Abstractions;
+
+namespace Modulith.Commerce.AdminUsers.Application.AdminUsers.Commands.UpdateAdminUser
+{
+    public class UpdateAdminUserCommandHandler
+        (IAdminUsersRepository adminUsersRepository,
+        IUnitOfWork unitOfWork) : ICommandHandler<UpdateAdminUserCommand>
+    {
+        public async Task<Result> Handle(UpdateAdminUserCommand request, CancellationToken cancellationToken)
+        {
+            var adminUser = await adminUsersRepository.SelectSimpleOrDefaultAsync(new FilteringOptions<Modulith.Commerce.AdminUser.Domain.AdminUsers.AdminUser>
+            {
+                Predicates = [u => u.Id == request.Id]
+            }, cancellationToken);
+
+            if (adminUser is null)
+                return Result.Failure(AdminUserErrors.NotFound);
+
+            adminUser.Update(
+                request.FirstName,
+                request.LastName,
+                request.Title,
+                request.PhoneNumber,
+                request.AvatarUrl,
+                request.Status,
+                request.ContractEndDate,
+                request.MfaEnabled);
+
+            await adminUsersRepository.UpdateAsync(adminUser, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
+        }
+    }
+}

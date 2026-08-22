@@ -1,0 +1,28 @@
+﻿<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/API/">
+    <Project Path="API/Modulith.Commerce.API/Modulith.Commerce.API.csproj" Id="a553691d-bf03-4bd9-8e0b-499538a14d47" />
+  </Folder>
+  <Folder Name="/src/Common/">
+    <Project Path="Common/Modulith.Commerce.Common.Application/Modulith.Commerce.Common.Application.csproj" Id="69a80c41-7db4-43db-aa26-9ecded85b782" />
+    <Project Path="Common/Modulith.Commerce.Common.Auth/Modulith.Commerce.Common.Auth.csproj" />
+    <Project Path="Common/Modulith.Commerce.Common.Domain/Modulith.Commerce.Common.Domain.csproj" Id="496e6d3e-5bfa-4bd0-9fc1-98cf5d550d17" />
+    <Project Path="Common/Modulith.Commerce.Common.Infrastructure/Modulith.Commerce.Common.Infrastructure.csproj" Id="43f1764e-a43e-4aa3-8c9f-a813d995b891" />
+  </Folder>
+  <Folder Name="/src/Contracts/">
+    <Project Path="Contracts/Modulith.Commerce.AdminUsers.IntegrationEvents/Modulith.Commerce.AdminUsers.IntegrationEvents.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/AdminUser/">
+    <Project Path="Modules/AdminUser/Modulith.Commerce.AdminUser.Domain/Modulith.Commerce.AdminUser.Domain.csproj" Id="11559d33-b707-4a89-b78c-a7e308f2414c" />
+    <Project Path="Modules/AdminUser/Modulith.Commerce.AdminUsers.Application/Modulith.Commerce.AdminUsers.Application.csproj" Id="c288605c-bdb8-4c31-a995-7f186ebc8600" />
+    <Project Path="Modules/AdminUser/Modulith.Commerce.AdminUsers.Infrastructure/Modulith.Commerce.AdminUsers.Infrastructure.csproj" />
+    <Project Path="Modules/AdminUser/Modulith.Commerce.AdminUsers.Presentation/Modulith.Commerce.AdminUsers.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Product/">
+    <Project Path="Modules/Product/Modulith.Commerce.Products.Application/Modulith.Commerce.Products.Application.csproj" Id="339f879a-6a1a-4dde-b374-a1e359b3c495" />
+    <Project Path="Modules/Product/Modulith.Commerce.Products.Domain/Modulith.Commerce.Products.Domain.csproj" />
+    <Project Path="Modules/Product/Modulith.Commerce.Products.Infrastructure/Modulith.Commerce.Products.Infrastructure.csproj" Id="6b1a7c6d-b2b3-4460-8991-0c04f7348437" />
+    <Project Path="Modules/Product/Modulith.Commerce.Products.Presentation/Modulith.Commerce.Products.Presentation.csproj" Id="64f3fb3f-7c7b-4545-86d0-36c6d811af38" />
+  </Folder>
+</Solution>

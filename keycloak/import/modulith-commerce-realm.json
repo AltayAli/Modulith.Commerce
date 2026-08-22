@@ -1,0 +1,70 @@
+{
+  "realm": "modulith-commerce",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "clients": [
+    {
+      "clientId": "modulith-commerce-web",
+      "name": "Modulith Commerce Web (End-User Login)",
+      "description": "Confidential BFF client for interactive end-user login (Authorization Code + PKCE). Not used for AdminUser provisioning - see modulith-commerce-admin-client for that.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "c659dba316159fa6536a3f1af4ea7bf2bec654c9",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "consentRequired": false,
+      "fullScopeAllowed": true,
+      "redirectUris": [
+        "http://localhost:5000/auth/callback",
+        "http://localhost:5000/auth/signout-callback"
+      ],
+      "webOrigins": [
+        "http://localhost:5000"
+      ],
+      "defaultClientScopes": [
+        "openid",
+        "profile",
+        "email",
+        "roles",
+        "web-origins"
+      ],
+      "optionalClientScopes": [
+        "offline_access"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5000/auth/signout-callback##http://localhost:5000/"
+      }
+    },
+    {
+      "clientId": "modulith-commerce-admin-client",
+      "name": "Modulith Commerce Admin API Client",
+      "description": "Service-account client used server-side (KeycloakClient) to provision/sync AdminUser accounts and roles via the Keycloak Admin REST API. Not used for interactive login.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "c891d669d78611a1bb1298e38283acf72b3ab9fd",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "fullScopeAllowed": true
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-modulith-commerce-admin-client",
+      "enabled": true,
+      "serviceAccountClientId": "modulith-commerce-admin-client",
+      "clientRoles": {
+        "realm-management": ["realm-admin"]
+      }
+    }
+  ]
+}

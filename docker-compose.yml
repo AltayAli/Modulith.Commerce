@@ -1,0 +1,138 @@
+﻿services:
+  modulith-commerce-api:
+    build:
+      context: .
+      dockerfile: API/Modulith.Commerce.API/Dockerfile
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=ModulithCommerceDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;
+      - ConnectionStrings__CacheConnection=redis:6379
+      - Serilog__WriteTo__1__Args__serverUrl=http://seq:5341
+      - Keycloak__Authority=http://modulith-commerce-auth:8080/realms/modulith-commerce
+      - Keycloak__ValidIssuer=http://localhost:8082/realms/modulith-commerce
+      - Keycloak__Audience=modulith-commerce-api
+      - Keycloak__BaseUrl=http://modulith-commerce-auth:8080
+      - Keycloak__Realm=modulith-commerce
+      - Keycloak__AdminClientId=modulith-commerce-admin-client
+      - Keycloak__AdminClientSecret=${KEYCLOAK_ADMIN_CLIENT_SECRET:-}
+      - Keycloak__Web__ClientId=modulith-commerce-web
+      - Keycloak__Web__ClientSecret=${KEYCLOAK_WEB_CLIENT_SECRET:-}
+      - Keycloak__Web__CallbackPath=/auth/callback
+      - Keycloak__Web__SignedOutCallbackPath=/auth/signout-callback
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      seq:
+        condition: service_started
+      modulith-commerce-auth:
+        condition: service_healthy
+    restart: unless-stopped
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "${SA_PASSWORD}"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$SA_PASSWORD\" -Q 'SELECT 1' -No -C || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  seq:
+    image: datalust/seq:latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
+    ports:
+      - "5341:5341"
+      - "5342:80"
+    volumes:
+      - seq-data:/data
+    restart: unless-stopped
+
+  # ---- modulith-commerce-auth (Keycloak, reuses sqlserver container) ----
+  modulith-commerce-auth-db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    entrypoint: ["/opt/mssql-tools18/bin/sqlcmd"]
+    command:
+      - "-S"
+      - "sqlserver"
+      - "-U"
+      - "sa"
+      - "-P"
+      - "${SA_PASSWORD}"
+      - "-No"
+      - "-C"
+      - "-Q"
+      - "IF NOT EXISTS (SELECT * FROM sys.databases WHERE name='KeycloakDB') CREATE DATABASE KeycloakDB"
+    restart: "no"
+
+  modulith-commerce-auth:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm"]
+    volumes:
+      - ./keycloak/import:/opt/keycloak/data/import
+    environment:
+      KC_DB: mssql
+      KC_DB_URL: jdbc:sqlserver://sqlserver:1433;databaseName=KeycloakDB;encrypt=false;trustServerCertificate=true
+      KC_DB_USERNAME: sa
+      KC_DB_PASSWORD: "${SA_PASSWORD}"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: "${KEYCLOAK_ADMIN_PASSWORD}"
+      # Full origin (not a bare hostname) is required under Keycloak 26's hostname-v2 provider —
+      # KC_HOSTNAME_PORT is a v1-only flag and is silently ignored here, which was the actual bug.
+      KC_HOSTNAME: http://localhost:8082
+      # Without this, backend-to-backend calls (our API container hitting Keycloak over the
+      # internal Docker network as modulith-commerce-auth:8080) get back a discovery document whose
+      # endpoints are rewritten to KC_HOSTNAME (localhost:8082) — unreachable from inside a
+      # container. This makes Keycloak echo the real request Host for non-browser callers instead.
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "8082:8080"
+    depends_on:
+      modulith-commerce-auth-db-init:
+        condition: service_completed_successfully
+    healthcheck:
+      # Keycloak's image ships neither curl nor wget, so we speak raw HTTP over bash's /dev/tcp
+      # against the management port's /health/ready (KC_HEALTH_ENABLED=true exposes it on :9000).
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q '200 OK'"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  sqlserver-data:
+  redis-data:
+  seq-data:
