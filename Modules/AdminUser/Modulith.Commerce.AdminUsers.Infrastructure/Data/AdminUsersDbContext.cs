@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Modulith.Commerce.AdminUser.Domain.ActivityLogs;
 using Modulith.Commerce.AdminUser.Domain.AdminUserRoles;
 using Modulith.Commerce.AdminUser.Domain.Abstractions;
 using Modulith.Commerce.AdminUser.Domain.Departments;
@@ -39,7 +38,6 @@ namespace Modulith.Commerce.AdminUsers.Infrastructure.Data
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<AdminUserRole> AdminUserRoles { get; set; }
-        public DbSet<ActivityLog> ActivityLogs { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
